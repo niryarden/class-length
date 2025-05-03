@@ -19,23 +19,24 @@ import langid
 GITHUB_TOKEN = os.environ['GITHUB_TOKEN']
 logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
 
-# WISHED_LIST_SIZE = 5000
-# PER_PAGE = 100
-WISHED_LIST_SIZE = 100
-PER_PAGE = 10
+WISHED_LIST_SIZE = 5000
+PER_PAGE = 100
 
 LANG = "JAVA"
 DAYS_LIMIT = 100
 MIN_CODE_FILES = 100
 MIN_CONTRIBUTORS = 3
 
+BOOK_KEYWORDS = ["learn", "learning", "tutorial", "tutorials", "book", "books", "guide", "guides", "Example",
+                 "Examples", "Introduction", "Introductions", "Course", "Courses", "Getting Started"]
+
 
 
 def handle_search_rate_limit(response):
     # if the request triggered the abuse detection mechanism of Github API and response is broken.. wait the 'Retry-After' time and rerun the request.
     if "message" in json.loads(response.text) and response.status_code == 403:
-        reset_time_stamp = response.headers["X-RateLimit-Reset"]
-        retry_after = int(reset_time_stamp) - time.time()
+        reset_time_stamp = int(response.headers["X-RateLimit-Reset"])
+        retry_after = reset_time_stamp - time.time() + 2
         logging.info(f"Reached Github search API rate limit. waiting {retry_after} seconds")
         time.sleep(int(retry_after))
         new_response = requests.get(response.request.url, headers=response.request.headers)
@@ -78,9 +79,8 @@ def check_if_bad_description(repo):
     for char in punctuation:
         repo_description = repo_description.replace(char, '')
 
-    key_words = ["learn", "learning", "tutorial", "tutorials", "book", "books", "guide", "guides", "Example",
-                 "Examples", "Introduction", "Introductions", "Course", "Courses"]
-    for key_word in key_words:
+
+    for key_word in BOOK_KEYWORDS:
         if key_word.upper() in repo_description.upper():
             logging.info(
                 f"repo ({repo_name}) was filtered due to use of prohibited key_word in the description - '{key_word}'")
@@ -178,11 +178,11 @@ def sanity_check(repo):
     return True
 
 
-def set_search_request(lang, page, query):
+def set_search_request(page, query):
     api_url = f"https://api.github.com/search/repositories"
     headers = {'Authorization': f'token {GITHUB_TOKEN}'}
     params = {
-        'q': f'{query} language:{lang}',
+        'q': f'{query} language:{LANG}',
         'sort': 'stars',
         'order': 'desc',
         'page': str(page),
@@ -197,37 +197,35 @@ def set_search_request(lang, page, query):
 def collect_repos():
     output = []
     query = ""
-    page_reduce_amount = 0
-    for i in range(1, int(WISHED_LIST_SIZE  / PER_PAGE) + 1, 1):
-        page = i - page_reduce_amount
-        search_results = set_search_request(LANG, page, query)
-
-        for index, repo in enumerate(search_results['items']):
-            check = sanity_check(repo)
-            # try:
-            #     check = sanity_check(repo)
-            # except KeyboardInterrupt:
-            #     quit()
-            # except Exception as e:
-            #     logging.error(f"!!!!!! skipped {index + 1} {repo['full_name']}")
-            #     logging.error(e)
-            #     continue
+    page = 0
+    while len(output) < WISHED_LIST_SIZE:
+        page += 1
+        search_results = set_search_request(page, query)
+        repos = search_results['items']
+        for index, repo in enumerate(repos):
+            try:
+                check = sanity_check(repo)
+            except KeyboardInterrupt:
+                quit()
+            except Exception as e:
+                logging.error(f"!!!!!! skipped {index + 1} {repo['full_name']}")
+                logging.error(e)
+                continue
             if check:
                 output.append(repo['html_url'])
                 logging.info(
-                    f"repo ({repo['full_name']}) was approved --- page {page + page_reduce_amount}. {len(output)}/{WISHED_LIST_SIZE} done.")
+                    f"repo ({repo['full_name']}) was approved - {len(output)}/{WISHED_LIST_SIZE} done.")
 
-            if page == 10 and index == PER_PAGE - 1:
+            if index == len(repos) - 1:
                 last_repo_stars = repo["stargazers_count"]
                 query = f"stars:<{last_repo_stars}"
-                page_reduce_amount = i
 
 
     logging.info(">>>")
     logging.info(f"{len(output)} repositories approved")
     logging.info("<<<")
 
-    output = list(set(output))  # remove duplicates
+    output = list(set(output))
     with open(os.path.join("inputs", "repositories_list.txt"), 'w') as output_file:
         for repo in output:
             output_file.write(repo + "\n")
