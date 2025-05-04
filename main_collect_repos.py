@@ -11,11 +11,8 @@ import langid
 GITHUB_TOKEN = os.environ['GITHUB_TOKEN']
 logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
 
-# WISHED_LIST_SIZE = 5000
-# PER_PAGE = 100
-
-WISHED_LIST_SIZE = 20
-PER_PAGE = 3
+WISHED_LIST_SIZE = 5000
+PER_PAGE = 100
 
 LANG = "JAVA"
 DAYS_LIMIT = 200
