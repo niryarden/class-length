@@ -1,11 +1,3 @@
-# The following script is separated from the rest of the scanner, and is being run manually only.
-# The script automatically generates a list of repositories, which is later used for the Rookout Logs Report.
-# The script takes the 5,000 most popular (most starred) repositories in Github, which are written in one of the supported languages, and runs few "sanity" checks on them.
-# A repository who entered the final list has passed the following tests:
-#   It is an active repo, which means it had a commit in the last 50 days.
-#   It has an English description which does not contain the words: "learn", "tutorial", "book", "guide", "Examples", "Introduction", "Course".
-#   It has more than 15 files written in the main programming language it is tagged under.
-
 import os
 import json
 import datetime
@@ -19,11 +11,14 @@ import langid
 GITHUB_TOKEN = os.environ['GITHUB_TOKEN']
 logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
 
-WISHED_LIST_SIZE = 5000
-PER_PAGE = 100
+# WISHED_LIST_SIZE = 5000
+# PER_PAGE = 100
+
+WISHED_LIST_SIZE = 20
+PER_PAGE = 3
 
 LANG = "JAVA"
-DAYS_LIMIT = 100
+DAYS_LIMIT = 200
 MIN_CODE_FILES = 100
 MIN_CONTRIBUTORS = 3
 
@@ -159,7 +154,7 @@ def check_if_too_few_contributors(repo):
     return False
 
 
-def sanity_check(repo):
+def check_should_collect_repo(repo):
     if check_if_fork(repo):  # no further requests
         return False
 
@@ -178,14 +173,13 @@ def sanity_check(repo):
     return True
 
 
-def set_search_request(page, query):
+def set_search_request(query):
     api_url = f"https://api.github.com/search/repositories"
     headers = {'Authorization': f'token {GITHUB_TOKEN}'}
     params = {
         'q': f'{query} language:{LANG}',
         'sort': 'stars',
         'order': 'desc',
-        'page': str(page),
         'per_page': f'{PER_PAGE}'
     }
     response = requests.get(api_url, params=params, headers=headers)
@@ -197,29 +191,24 @@ def set_search_request(page, query):
 def collect_repos():
     output = []
     query = ""
-    page = 0
     while len(output) < WISHED_LIST_SIZE:
-        page += 1
-        search_results = set_search_request(page, query)
+        search_results = set_search_request(query)
         repos = search_results['items']
         for index, repo in enumerate(repos):
             try:
-                check = sanity_check(repo)
+                should_collect_repo = check_should_collect_repo(repo)
             except KeyboardInterrupt:
                 quit()
             except Exception as e:
-                logging.error(f"!!!!!! skipped {index + 1} {repo['full_name']}")
-                logging.error(e)
+                logging.error(f"!!!!!! skipped {index + 1} {repo['full_name']}", exc_info=True)
                 continue
-            if check:
+            if should_collect_repo:
                 output.append(repo['html_url'])
                 logging.info(
                     f"repo ({repo['full_name']}) was approved - {len(output)}/{WISHED_LIST_SIZE} done.")
 
-            if index == len(repos) - 1:
-                last_repo_stars = repo["stargazers_count"]
-                query = f"stars:<{last_repo_stars}"
-
+        last_repo_stars = repos[-1]["stargazers_count"]
+        query = f"stars:<{last_repo_stars}"
 
     logging.info(">>>")
     logging.info(f"{len(output)} repositories approved")
