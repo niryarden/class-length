@@ -11,11 +11,11 @@ import langid
 GITHUB_TOKEN = os.environ['GITHUB_TOKEN']
 logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
 
-WISHED_LIST_SIZE = 5000
+WISHED_LIST_SIZE = 4000
 PER_PAGE = 100
 
 LANG = "JAVA"
-DAYS_LIMIT = 200
+DAYS_LIMIT = 365
 MIN_CODE_FILES = 100
 MIN_CONTRIBUTORS = 3
 
@@ -170,12 +170,13 @@ def check_should_collect_repo(repo):
     return True
 
 
-def set_search_request(query):
+def set_search_request(query, page):
     api_url = f"https://api.github.com/search/repositories"
     headers = {'Authorization': f'token {GITHUB_TOKEN}'}
     params = {
         'q': f'{query} language:{LANG}',
         'sort': 'stars',
+        'page': str(page),
         'order': 'desc',
         'per_page': f'{PER_PAGE}'
     }
@@ -185,12 +186,30 @@ def set_search_request(query):
     return search_results
 
 
+def save_output(output_lst):
+    output_lst = list(set(output_lst))
+
+    logging.info(">>>")
+    logging.info(f"{len(output_lst)} repositories approved")
+    logging.info("<<<")
+
+    with open(os.path.join("inputs", "repositories_list.txt"), 'w') as output_file:
+        for repo in output_lst:
+            output_file.write(repo + "\n")
+
+
 def collect_repos():
-    output = []
-    query = ""
-    while len(output) < WISHED_LIST_SIZE:
-        search_results = set_search_request(query)
-        repos = search_results['items']
+    output_lst = []
+    last_repo_stars = 100000
+    page = 0
+    while len(output_lst) < WISHED_LIST_SIZE and last_repo_stars > 0:
+        try:
+            search_results = set_search_request(f"stars:<{last_repo_stars}", page)
+            repos = search_results['items']
+        except Exception as e:
+            logging.error("Broken", exc_info=True)
+            save_output(output_lst)
+            quit()
         for index, repo in enumerate(repos):
             try:
                 should_collect_repo = check_should_collect_repo(repo)
@@ -200,21 +219,21 @@ def collect_repos():
                 logging.error(f"!!!!!! skipped {index + 1} {repo['full_name']}", exc_info=True)
                 continue
             if should_collect_repo:
-                output.append(repo['html_url'])
+                output_lst.append(repo['html_url'])
                 logging.info(
-                    f"repo ({repo['full_name']}) was approved - {len(output)}/{WISHED_LIST_SIZE} done.")
+                    f"repo ({repo['full_name']}) was approved - {len(output_lst)}/{WISHED_LIST_SIZE} done.")
+        try:
+            if repos[-1]["stargazers_count"] == last_repo_stars:
+                page += 1
+            else:
+                last_repo_stars = repos[-1]["stargazers_count"]
+                page = 0
+        except Exception as e:
+            logging.error("Broken", exc_info=True)
+            save_output(output_lst)
+            quit()
 
-        last_repo_stars = repos[-1]["stargazers_count"]
-        query = f"stars:<{last_repo_stars}"
-
-    logging.info(">>>")
-    logging.info(f"{len(output)} repositories approved")
-    logging.info("<<<")
-
-    output = list(set(output))
-    with open(os.path.join("inputs", "repositories_list.txt"), 'w') as output_file:
-        for repo in output:
-            output_file.write(repo + "\n")
+    save_output(output_lst)
 
 
 if __name__ == "__main__":
