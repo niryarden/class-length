@@ -42,5 +42,5 @@ def remove_readonly(func, path, excinfo):
 
 
 def delete_currently_cloned_repository(current_clone_location):
-    if (os.path.exists(current_clone_location)):
+    if os.path.exists(current_clone_location):
         shutil.rmtree(current_clone_location, onerror=remove_readonly)
