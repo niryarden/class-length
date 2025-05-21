@@ -178,8 +178,6 @@ def set_search_request(query, page):
 
 
 def save_output(output_lst):
-    output_lst = list(set(output_lst))
-
     logging.info(">>>")
     logging.info(f"{len(output_lst)} repositories approved")
     logging.info("<<<")

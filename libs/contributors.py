@@ -50,7 +50,7 @@ def get_repo_metadata(owner, repo):
 
     metadata = {
         "main_lang": data.get("language"),
-        "license_type": data.get("license", {}).get("spdx_id") if data.get("license") else None,
+        "license_type": data.get("license", {}).get("spdx_id") if data.get("license") else "NO_LICENSE",
         "owner_type": data.get("owner", {}).get("type"),  # "User" or "Organization"
         "count_forks": data.get("forks_count", 0),
         "count_stars": data.get("stargazers_count", 0),
@@ -86,7 +86,7 @@ def get_contribution_friendly_metrics(repo_path):
     }
 
 
-def get_repo_contributors_metrics(url, current_clone_location):
+def get_repo_contributors_distribution(url, current_clone_location):
     owner, repo = extract_repo_info(url)
     if not (owner and repo):
         return []
@@ -95,21 +95,8 @@ def get_repo_contributors_metrics(url, current_clone_location):
     if not contributors:
         return []
 
-    total_contributions = sum(c.get('contributions', 0) for c in contributors)
-    sorted_contributors = sorted(contributors, key=lambda x: x.get('contributions', 0), reverse=True)
-
-    # אחוזים מהחמישה התורמים הגדולים
-    top_percentages = {}
-    for i in range(1, 6):
-        top_total = sum(c.get('contributions', 0) for c in sorted_contributors[:i])
-        top_percentages[f"top_{i}_contributors_percent"] = round((top_total / total_contributions) * 100, 2) if total_contributions else 0.0
-
-    # כמה תרמו בדיוק 1–5 פעמים
-    contrib_counts = {i: 0 for i in range(1, 6)}
-    for c in contributors:
-        count = c.get('contributions', 0)
-        if count in contrib_counts:
-            contrib_counts[count] += 1
+    distribution = sorted([c.get('contributions', 0) for c in contributors], reverse=True)
+    total_contributions = sum(distribution)
 
     metadata = get_repo_metadata(owner, repo)
     contribution_friendly_metrics = get_contribution_friendly_metrics(current_clone_location)
@@ -120,11 +107,6 @@ def get_repo_contributors_metrics(url, current_clone_location):
         **contribution_friendly_metrics,
         "total_contributors": len(contributors),
         "total_contributions": total_contributions,
-        **top_percentages,
-        "one_time_contributors": contrib_counts[1],
-        "two_time_contributors": contrib_counts[2],
-        "three_time_contributors": contrib_counts[3],
-        "four_time_contributors": contrib_counts[4],
-        "five_time_contributors": contrib_counts[5]
+        "contributors_distribution": distribution
     }
     return record
