@@ -17,12 +17,26 @@ PER_PAGE = 100
 
 LANG = "JAVA"
 DAYS_LIMIT = 365
-MIN_CODE_FILES = 100
+MIN_CODE_FILES = 50
 MIN_CONTRIBUTORS = 3
 
 BOOK_KEYWORDS = ["learn", "learning", "tutorial", "tutorials", "book", "books", "guide", "guides", "Example",
                  "Examples", "Introduction", "Introductions", "Course", "Courses", "Getting Started"]
 
+
+
+BAD_DESCRIPTION = "bad_description"
+TOO_FEW_CODE_FILES = "too_few_code_files"
+NOT_ACTIVE = "not_active"
+TOO_FEW_CONTRIBUTORS = "too_few_contributors"
+FORK = "fork"
+rejection_reason_histogram = {
+    BAD_DESCRIPTION: 0,
+    TOO_FEW_CODE_FILES: 0,
+    NOT_ACTIVE: 0,
+    TOO_FEW_CONTRIBUTORS: 0,
+    FORK: 0
+}
 
 
 def check_if_bad_description(repo):
@@ -125,19 +139,24 @@ def check_if_too_few_contributors(repo):
 
 def check_should_collect_repo(repo):
     if check_if_fork(repo):  # no further requests
+        rejection_reason_histogram[FORK] += 1
         return False
 
     if check_if_bad_description(repo):  # no further requests
+        rejection_reason_histogram[BAD_DESCRIPTION] += 1
         return False
 
     if check_if_not_active(repo):  # single repos request
+        rejection_reason_histogram[NOT_ACTIVE] += 1
         return False
 
     if check_if_too_few_contributors(repo):  # single repos request
+        rejection_reason_histogram[TOO_FEW_CONTRIBUTORS] += 1
         return False
 
     if check_if_too_few_code_files(repo):  # single search request
-        return True
+        rejection_reason_histogram[TOO_FEW_CODE_FILES] += 1
+        return False
 
     return True
 
@@ -168,6 +187,9 @@ def save_output(output_lst):
     with open(os.path.join("inputs", "repositories_list.txt"), 'w') as output_file:
         for repo in output_lst:
             output_file.write(repo + "\n")
+
+    with open(os.path.join("outputs", "rejection_reasons.json"), 'w') as output_file:
+        json.dump(rejection_reason_histogram, output_file, indent=4)
 
 
 def collect_repos():
