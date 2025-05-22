@@ -6,7 +6,7 @@ import logging
 import pandas as pd
 
 from libs.cloner import BASE_CLONE_LOCATION, clone_repository, delete_currently_cloned_repository
-from libs.class_length import get_class_lengths
+from libs.class_length import get_class_length_metrics
 from libs.contributors import get_repo_contributors_distribution
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
@@ -31,14 +31,14 @@ def handle_repo(repo):
     logging.info(f"running repo number {index + 1}")
     try:
         current_clone_location = clone_repository(repo_url)
-        class_lengths = get_class_lengths(current_clone_location)
-        if class_lengths is None:
+        class_length_metrics = get_class_length_metrics(current_clone_location)
+        if class_length_metrics is None:
             logging.info(f"skipped repo number {index + 1}")
             return None
         contributors_metrics = get_repo_contributors_distribution(repo_url, current_clone_location)
         delete_currently_cloned_repository(current_clone_location)
         logging.info(f"finished repo number {index + 1}")
-        return {**contributors_metrics, "class_lengths": class_lengths}
+        return {**contributors_metrics, **class_length_metrics}
     except Exception as e:
         logging.error(f"skiping repository number {index + 1} due to an error: {repo_url}")
         return None
