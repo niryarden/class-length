@@ -1,7 +1,5 @@
-https://github.com/iluwatar/java-design-patterns
 https://github.com/spring-projects/spring-boot
 https://github.com/elastic/elasticsearch
-https://github.com/kdn251/interviews
 https://github.com/TheAlgorithms/Java
 https://github.com/Stirling-Tools/Stirling-PDF
 https://github.com/spring-projects/spring-framework
@@ -453,7 +451,6 @@ https://github.com/apache/dubbo-samples
 https://github.com/spring-projects/spring-kafka
 https://github.com/apache/incubator-seata-samples
 https://github.com/FasterXML/jackson-core
-https://github.com/confluentinc/schema-registry
 https://github.com/vipshop/Saturn
 https://github.com/jenkinsci/kubernetes-plugin
 https://github.com/polymorphicshade/Tubular
@@ -2418,7 +2415,6 @@ https://github.com/apache/commons-email
 https://github.com/Aiven-Open/klaw
 https://github.com/kserve/modelmesh
 https://github.com/bonitasoft/bonita-engine
-https://github.com/rodrigorodrigues/microservices-design-patterns
 https://github.com/mcmonkeyprojects/Sentinel
 https://github.com/Netflix/netflix-commons
 https://github.com/jdmonin/JSettlers2
@@ -2851,7 +2847,6 @@ https://github.com/TeamMetallurgy/Atum2
 https://github.com/Igrium/mc-world-export
 https://github.com/thsa/datawarrior
 https://github.com/scalar-labs/scalardl
-https://github.com/aakashverma1124/Data-Structures-and-Algorithms-for-Interviews
 https://github.com/smart-fun/smartGL
 https://github.com/ontologyportal/sigmakee
 https://github.com/k-pet-group/BlueJ-Greenfoot
