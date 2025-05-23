@@ -13,7 +13,7 @@ def scan_repo_by_lang(current_clone_location):
 
 
 def extract_classes_length(code_file):
-    with open(code_file, 'r', encoding='utf-8') as f:
+    with open(code_file, 'r', encoding='utf-8', errors='ignore') as f:
         lines = f.readlines()
 
     class_pattern = re.compile(r'^\s*(public|protected|private)?\s*(abstract|final)?\s*class\s+(\w+)\b')

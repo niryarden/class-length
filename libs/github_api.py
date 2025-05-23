@@ -23,18 +23,21 @@ def handle_search_rate_limit(response):
     return response
 
 
-def handle_repo_rate_limit():
+def handle_repo_rate_limit(response):
     logging.info("repos api reached its rate limit, waiting for reset...")
     rate_limit_url = "https://api.github.com/rate_limit"
     headers = {'Authorization': f'token {GITHUB_TOKEN}'}
-    response = requests.get(rate_limit_url, headers=headers)
-    rete_limit_data = json.loads(response.text)
-    reset_time_stamp = rete_limit_data["rate"]["reset"]
-    waiting_status = True
-    while waiting_status:
-        if time.time() > reset_time_stamp:
-            waiting_status = False
-        else:
-            time_to_wait = datetime.datetime.fromtimestamp(reset_time_stamp) - datetime.datetime.now()
-            logging.info(f"time to reset: {int(time_to_wait.total_seconds())} seconds")
-            time.sleep(30)
+
+    waiting_for_reset = True
+    while waiting_for_reset:
+        res_rate_limit = requests.get(rate_limit_url, headers=headers)
+        rate_limit_data = json.loads(res_rate_limit.text)
+        if rate_limit_data["rate"]["remaining"] > 0:
+            waiting_for_reset = False
+            continue
+        time_to_wait = datetime.datetime.fromtimestamp(rate_limit_data["rate"]["reset"]) - datetime.datetime.now()
+        seconds_to_wait = int(time_to_wait.total_seconds()) + 5
+        logging.info(f"time to reset: {seconds_to_wait} seconds")
+        time.sleep(seconds_to_wait)
+    new_response = requests.get(response.request.url, headers=response.request.headers)
+    return new_response

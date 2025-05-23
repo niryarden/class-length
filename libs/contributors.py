@@ -30,8 +30,8 @@ def get_all_contributors(owner, repo):
         }
         headers = {'Authorization': f'token {GITHUB_TOKEN}'}
         response = requests.get(url, headers=headers, params=params)
-        if int(response.headers["X-RateLimit-Remaining"]) == 1:
-            handle_repo_rate_limit()
+        if int(response.headers.get("X-RateLimit-Remaining", 1)) <= 1:
+            response = handle_repo_rate_limit(response)
         data = json.loads(response.text)
         contributors.extend(data)
         if len(data) == 0:

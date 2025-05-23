@@ -93,8 +93,8 @@ def check_if_not_active(repo):  # check if there were any commits in last 50 day
         'Authorization': 'token %s' % GITHUB_TOKEN
     }
     response = requests.get(commit_api_url, headers=headers)
-    if int(response.headers["X-RateLimit-Remaining"]) == 1:
-        handle_repo_rate_limit()
+    if int(response.headers["X-RateLimit-Remaining"]) == 0:
+        response = handle_repo_rate_limit(response)
     commit_date = datetime.date.fromisoformat(json.loads(response.text)[0]["commit"]["committer"]["date"][:10])
     delta = datetime.date.today() - commit_date
     if delta.days > DAYS_LIMIT:
@@ -122,8 +122,8 @@ def check_if_too_few_contributors(repo):
         }
         headers = {'Authorization': f'token {GITHUB_TOKEN}'}
         response = requests.get(contributors_url, headers=headers, params=params)
-        if int(response.headers["X-RateLimit-Remaining"]) == 1:
-            handle_repo_rate_limit()
+        if int(response.headers["X-RateLimit-Remaining"]) == 0:
+            response = handle_repo_rate_limit(response)
         data = json.loads(response.text)
         sum_contributors = sum_contributors + len(data)
         if len(data) == 0:
