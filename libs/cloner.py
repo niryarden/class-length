@@ -32,7 +32,11 @@ def clone_repository(repo_url):
     project_name = repo_url.split("/")[-1]
     tokenized_repo_url = f"https://{GITHUB_TOKEN}:x-oauth-basic@github.com/{creator}/{project_name}"
     os.makedirs(current_clone_location, exist_ok=True)
-    Repo.clone_from(tokenized_repo_url, current_clone_location)
+    try:
+        Repo.clone_from(tokenized_repo_url, current_clone_location)
+    except Exception as e:
+        delete_currently_cloned_repository(current_clone_location)
+        raise
     return current_clone_location
 
 # handles deleting readonly files with shutil

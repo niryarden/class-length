@@ -26,21 +26,35 @@ def get_repos_list():
     return repos_url
 
 
-def handle_repo(repo):
-    index, repo_url = repo
-    logging.info(f"running repo number {index + 1}")
+def handle_repo(args):
+    repo_url, counter, lock = args
+    with lock:
+        counter.value += 1
+        index = counter.value
+    logging.info(f"running repo number {index}")
+
     try:
         current_clone_location = clone_repository(repo_url)
+    except Exception as e:
+        logging.error(f"skiping repository number {index} due to clone fail: {repo_url}")
+        logging.error(e, exc_info=True)
+        return None
+
+    try:
         class_length_metrics = get_class_length_metrics(current_clone_location)
         if class_length_metrics is None:
-            logging.info(f"skipped repo number {index + 1}")
+            delete_currently_cloned_repository(current_clone_location)
+            logging.info(f"skipped repo number {index}")
             return None
+
         contributors_metrics = get_repo_contributors_distribution(repo_url, current_clone_location)
         delete_currently_cloned_repository(current_clone_location)
-        logging.info(f"finished repo number {index + 1}")
+        logging.info(f"finished repo number {index}")
         return {**contributors_metrics, **class_length_metrics}
     except Exception as e:
-        logging.error(f"skiping repository number {index + 1} due to an error: {repo_url}")
+        delete_currently_cloned_repository(current_clone_location)
+        logging.error(f"skiping repository number {index} due to an error: {repo_url}")
+        logging.error(e, exc_info=True)
         return None
 
 
@@ -59,9 +73,17 @@ def main_scan_repos():
     if GITHUB_TOKEN:
         start_with_clean_sheet()
         repos_url = get_repos_list()
-        pool = mp.Pool(mp.cpu_count())
-        metrics_metadata_results = pool.map_async(handle_repo, [(index, repo_url) for index, repo_url in enumerate(repos_url)]).get()
-        pool.close()
+        
+        with mp.Manager() as manager:
+            counter = manager.Value('i', 0)
+            lock = manager.Lock()
+
+            with mp.Pool(mp.cpu_count()) as pool:
+                metrics_metadata_results = pool.map_async(handle_repo,
+                      [(repo_url, counter, lock) for repo_url in repos_url]).get()
+                pool.close()
+                pool.join()
+
         save_output([item for item in metrics_metadata_results if item is not None])
         delete_leftovers()
     else:
