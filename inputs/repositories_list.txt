@@ -465,7 +465,6 @@ https://github.com/plutext/docx4j
 https://github.com/toolbox4minecraft/amidst
 https://github.com/ta4j/ta4j
 https://github.com/open-telemetry/opentelemetry-java-instrumentation
-https://github.com/JetBrains/intellij-plugins
 https://github.com/leibnitz27/cfr
 https://github.com/iiordanov/remote-desktop-clients
 https://github.com/androidx/media
@@ -2233,7 +2232,6 @@ https://github.com/2006-Scape/2006Scape
 https://github.com/Mechanical-Advantage/AdvantageKit
 https://github.com/vert-x3/vertx-mqtt
 https://github.com/KyoriPowered/adventure-platform
-https://github.com/confluentinc/ksql
 https://github.com/FunnyGuilds/FunnyGuilds
 https://github.com/miltonio/milton2
 https://github.com/simeonpilgrim/nikon-firmware-tools
@@ -2744,7 +2742,6 @@ https://github.com/2008Choco/VeinMiner
 https://github.com/aws/aws-iot-device-sdk-java-v2
 https://github.com/cojen/TuplDB
 https://github.com/TAKETODAY/today-infrastructure
-https://github.com/DarwinNE/FidoCadJ
 https://github.com/metawidget/metawidget
 https://github.com/SecUSo/privacy-friendly-weather
 https://github.com/EngineHub/CommandHelper
@@ -2903,7 +2900,6 @@ https://github.com/qcadoo/qcadoo
 https://github.com/nvdweem/PCPanel
 https://github.com/QuickShop-Community/QuickShop-Hikari
 https://github.com/ijpb/MorphoLibJ
-https://github.com/confluentinc/kafka-rest
 https://github.com/flightstats/hub
 https://github.com/Aiven-Open/jdbc-connector-for-apache-kafka
 https://github.com/sundrio/sundrio
