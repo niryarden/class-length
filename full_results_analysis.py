@@ -59,7 +59,7 @@ os.makedirs("analysis_outputs/plots", exist_ok=True)
 
 # Descriptive statistics
 desc_stats = df[all_metrics].describe(percentiles=[.05, .25, .5, .75, .95]).T
-desc_stats.to_excel("descriptive_statistics.xlsx")
+desc_stats.to_excel("analysis_outputs/descriptive_statistics.xlsx")
 
 # Histograms and CDFs with mean and median lines
 for col in all_metrics:
@@ -75,7 +75,7 @@ for col in all_metrics:
     plt.ylabel("Frequency")
     plt.legend()
     plt.tight_layout()
-    plt.savefig(f"plots/histogram_{col}.png")
+    plt.savefig(f"analysis_outputs/plots/histogram_{col}.png")
     plt.close()
 
     plt.figure(figsize=(6, 4))
@@ -89,7 +89,7 @@ for col in all_metrics:
     plt.ylabel("Cumulative Probability")
     plt.legend()
     plt.tight_layout()
-    plt.savefig(f"plots/cdf_{col}.png")
+    plt.savefig(f"analysis_outputs/plots/cdf_{col}.png")
     plt.close()
 
 # LLCD plots
@@ -103,7 +103,7 @@ for col in length_cols + [f"{i}_time_contributors" for i in range(1, 6)]:
     plt.xlabel(col)
     plt.ylabel("1 - CDF")
     plt.tight_layout()
-    plt.savefig(f"plots/llcd_{col}.png")
+    plt.savefig(f"analysis_outputs/plots/llcd_{col}.png")
     plt.close()
 
 # Correlation analysis and scatter plots with Pearson annotation
@@ -123,10 +123,10 @@ for l_col in length_cols:
                  transform=plt.gca().transAxes, fontsize=9, verticalalignment='top',
                  bbox=dict(facecolor='white', alpha=0.5))
         plt.tight_layout()
-        plt.savefig(f"plots/scatter_{l_col}_vs_{c_col}.png")
+        plt.savefig(f"analysis_outputs/plots/scatter_{l_col}_vs_{c_col}.png")
         plt.close()
 
-pd.DataFrame(pearson_rows).to_excel("pearson_correlations_annotated.xlsx", index=False)
+pd.DataFrame(pearson_rows).to_excel("analysis_outputs/pearson_correlations_annotated.xlsx", index=False)
 
 # T-test and boxplots with annotation
 df["centralized"] = df["top_1_contributors_percent"] > 80
@@ -147,7 +147,7 @@ for l_col in length_cols:
              transform=plt.gca().transAxes, fontsize=9, verticalalignment='top',
              bbox=dict(facecolor='white', alpha=0.5))
     plt.tight_layout()
-    plt.savefig(f"plots/boxplot_{l_col}_centralized_annotated.png")
+    plt.savefig(f"analysis_outputs/plots/boxplot_{l_col}_centralized_annotated.png")
     plt.close()
 
-pd.DataFrame(ttest_rows).to_excel("ttest_results_updated.xlsx", index=False)
+pd.DataFrame(ttest_rows).to_excel("analysis_outputs/ttest_results_updated.xlsx", index=False)
